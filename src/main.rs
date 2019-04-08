@@ -6,7 +6,7 @@ use std::thread;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct State {
-	tiles: [i32; 16]
+	tiles: [u8; 16]
 }
 
 impl State{
@@ -14,10 +14,10 @@ impl State{
 		let mut rng = rand::thread_rng();
 		let index : usize = *blanks.choose(&mut rng).unwrap();
 		if 0.9 > rng.gen() {
-			self.tiles[index] = 2;
+			self.tiles[index] = 1u8;
 		}
 		else {
-			self.tiles[index] = 4;
+			self.tiles[index] = 2u8;
 		}
 	
 	}
@@ -25,7 +25,7 @@ impl State{
 	fn shift(&mut self, start: i32, delta: i32) {
 		let mut current_index = start;
 		let mut current_target = start;
-		let mut prev_val = -1;
+		let mut prev_val = 200u8;
 
 		for _ in 0..4 {
 			let val = self.tiles[current_index as usize];
@@ -35,8 +35,8 @@ impl State{
 				continue;
 			}
 			else if val == prev_val {
-				self.tiles[(current_target - delta) as usize] *= 2;
-				prev_val = -1;
+				self.tiles[(current_target - delta) as usize] += 1u8;
+				prev_val = 200u8;
 			}
 			else {
 				self.tiles[current_target as usize] = val;
@@ -56,7 +56,7 @@ impl State{
 	fn blanks(&self) -> Vec<usize> {
 		let mut result = Vec::with_capacity(16);
 		for index in 0..16usize {
-			if self.tiles[index] == 0 {
+			if self.tiles[index] == 0u8 {
 				result.push(index);
 			}
 		}
@@ -101,7 +101,9 @@ impl State{
 	fn score(&self) -> i32 {
 		let mut result = 0;
 		for val in self.tiles.iter() {
-			result += val;
+			if (*val != 0u8) {
+				result += 1 << val;
+			}
 		}
 		return result;
 	}
@@ -210,7 +212,7 @@ impl State{
 		while(next_states.len() > 0) {
 			self.parallel_timed_make_best_move(duration, next_states, num_threads);
 			self.add_random_value(self.blanks());
-			//println!("{}", self);
+			println!("{}", self);
 			next_states = self.next_states();
 		}
 	}
@@ -222,7 +224,12 @@ impl fmt::Display for State {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		for row in 0..4 {
 			for col in 0..4 {
-				write!(f, "{:>width$},", self.tiles[4 * row + col], width=4)?;
+				let val = self.tiles[4 * row + col];
+				let mut int_val : i32 = 0;
+				if (val != 0) {
+					int_val = 1 << val;
+				} 
+				write!(f, "{:>width$},", int_val, width=4)?;
 			}
 			write!(f, "\n")?;
 		}
@@ -235,7 +242,7 @@ fn main() {
 	for _ in 0..20 {
 	    let mut my_state = State {tiles: [0; 16]};
 	    my_state.add_random_value(my_state.blanks());
-	    my_state.parallel_timed_play_best_game(250, 7);
+	    my_state.timed_play_best_game(5000);
 	    println!("{}", my_state);
 	}
 }
