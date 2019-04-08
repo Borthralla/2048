@@ -4,5 +4,18 @@ version = "0.1.0"
 authors = ["Borthralla <mann.p@husky.neu.edu>"]
 edition = "2018"
 
+# The release profile, used for `cargo build --release` (and the dependencies
+# for `cargo test --release`,  including the local library or binary).
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = false
+debug-assertions = false
+codegen-units = 16
+panic = 'unwind'
+incremental = false
+overflow-checks = false
+
 [dependencies]
 rand = "0.6.5"
