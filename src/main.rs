@@ -3,6 +3,8 @@ use rand::seq::SliceRandom;
 use rand::Rng;
 use std::time::{Duration, Instant};
 use std::thread;
+use std::fs::OpenOptions;
+use std::io::prelude::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct State {
@@ -239,10 +241,15 @@ impl fmt::Display for State {
 
 
 fn main() {
-	for _ in 0..20 {
+	 let mut file = OpenOptions::new()
+        .write(true)
+        .append(true)
+        .open("finished_games.txt")
+        .unwrap();
+	for _ in 0..1000 {
 	    let mut my_state = State {tiles: [0; 16]};
 	    my_state.add_random_value(my_state.blanks());
-	    my_state.timed_play_best_game(5000);
-	    println!("{}", my_state);
+	    my_state.timed_play_best_game(10);
+	    writeln!(file, "{}", my_state);
 	}
 }
